@@ -60,20 +60,55 @@ signal bit[REGWRITE_W] s_id_regwrite;
 signal bit[SRC2_W] s_id_alusrc2;
 signal bit[HALT_W] s_id_halt;
 
-
 //Instruction opcode + func3 + func7
 signal bit[OPC_W] s_id_opc;
+
+//Reg File inputs
+signal bit[IMM5_W] s_id_rs1;
+signal bit[IMM5_W] s_id_rs2;
+
+//Reg File outputs
+signal bit[WORD_W] s_id_reg1;
+signal bit[WORD_W] s_id_reg2;
+
+//IMMGEN output
+signal bit[WORD_W] s_id_immed;
+
+//Read signal
+signal bit[IMM5_W] s_id_rd;
 // -------------------------------------------------------------------------------------------------
 // Execute stage
 // -------------------------------------------------------------------------------------------------
 
 // Pipelined Program Counter + Instruction
-register bit[ADDR_W] r_ex_pc            		{ pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_pc            		{ pipeline = pipe.EX; };
 register bit[INSTR_W] r_ex_instr                { pipeline = pipe.EX; };
-register bit[HALT_W] r_ex_halt            		{ pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_halt            		{ pipeline = pipe.EX; };
 
 // ALU Operation Control
-register bit[ALUOP_W] r_ex_aluop        		{ pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_aluop        		{ pipeline = pipe.EX; };
+
+//OP2 Mux inputs
+register bit[WORD_W] r_ex_immed                { pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_reg2                  { pipeline = pipe.EX; };
+
+//OP2 Mux control
+register bit[WORD_W] r_ex_alusrc2            { pipeline = pipe.EX; };
+
+//ALU input 1
+register bit[WORD_W] r_ex_reg1                  { pipeline = pipe.EX; };
+
+//Read signal
+register bit[WORD_W] r_ex_rd                    { pipeline = pipe.EX; };
+
+//Read signal
+register bit[WORD_W] r_ex_regwrite              { pipeline = pipe.EX; };
+
+//ALU input 2
+signal bit[WORD_W] s_ex_src2;
+
+//ALU output signal
+signal bit[WORD_W] s_ex_alu;
 
 // -------------------------------------------------------------------------------------------------
 // Memory stage
@@ -82,6 +117,9 @@ register bit[ALUOP_W] r_ex_aluop        		{ pipeline = pipe.EX; };
 // Pipelined Program Counter + Instruction
 register bit[ADDR_W] r_me_pc           			{ pipeline = pipe.ME; };
 register bit[INSTR_W] r_me_instr                { pipeline = pipe.ME; };
+register bit[WORD_W] r_me_rd                    { pipeline = pipe.ME; };
+register bit[WORD_W] r_me_regwrite              { pipeline = pipe.ME; };
+register bit[WORD_W] r_me_alu                   { pipeline = pipe.ME; };
 
 // -------------------------------------------------------------------------------------------------
 // Writeback stage
@@ -90,6 +128,9 @@ register bit[INSTR_W] r_me_instr                { pipeline = pipe.ME; };
 // Pipelined Program Counter + Instruction
 register bit[ADDR_W] r_wb_pc            		{ pipeline = pipe.WB; };
 register bit[INSTR_W] r_wb_instr                { pipeline = pipe.WB; };
+register bit[WORD_W] r_wb_rd                    { pipeline = pipe.WB; };
+register bit[WORD_W] r_wb_regwrite              { pipeline = pipe.WB; };
+register bit[WORD_W] r_wb_alu                   { pipeline = pipe.WB; };
 
 // -------------------------------------------------------------------------------------------------
 // Pipeline control
