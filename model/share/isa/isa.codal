@@ -278,8 +278,7 @@ set opc_itype_alu = opc_addi, opc_slti, opc_sltiu, opc_xori, opc_ori, opc_andi;
 
 element i_itype_alu
 {
-    use 
-     as opc;
+    use opc_itype_alu as opc;
     use xpr_all as rs1, rd;
     use simm12 as simm;
     assembly { opc rd "," rs1 "," simm};

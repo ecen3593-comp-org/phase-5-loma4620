@@ -46,7 +46,7 @@ event pipeline_control : pipeline(pipe.IF)
             codasip_info(INFO_PIPE, "pipeline ID clear\n");
         }
 
-        if(s_EX_stall){
+        if(s_ex_stall){
             pipe.EX.stall();
             codasip_info(INFO_PIPE, "pipeline EX stall\n");
         }

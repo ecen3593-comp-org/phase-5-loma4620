@@ -27,19 +27,19 @@
 // -------------------------------------------------------------------------------------------------
 // Write-Back Stage
 // -------------------------------------------------------------------------------------------------
+#include "debug.hcodal"
 
 event wb : pipeline(pipe.WB)
 {
-    if (r_wb_regwrite){
-        rf_xpr.wrt0[r_wb_rd] = r_wb_alu;
-        codasip_info(INFO_RF_WRITE, "rf_xpr[%d] = 0x%x", r_wb_rd, r_wb_alu);
-    }
     semantics
     {
-
-
         // Set local stall.
         s_wb_stall = 0;
+
+        if (r_wb_regwrite && r_wb_rd != 0){ // Destination register indexed below, so verify
+            rf_xpr.wrt0[r_wb_rd] = r_wb_alu;
+            codasip_info(INFO_RF_WRITE, "rf_xpr[%d] = 0x%x", r_wb_rd, r_wb_alu);
+        }
 
     };
 };

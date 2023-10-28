@@ -38,6 +38,21 @@ event id : pipeline(pipe.ID)
 
     semantics
     {
+        uint32 id_instr_temp;
+        bool cache_ready, cache_responses;
+
+        if_code.transport(CP_PHS_DATA, cache_ready, cache_responses, id_instr_temp);
+        s_id_instr = r_id_clear ? NOP_INSTRUCTION: id_instr_temp;
+
+        //Opcode
+        s_id_opc = s_id_instr[31..25] :: s_id_instr[14..12] :: s_id_instr[6..0];
+        s_id_rs1 = s_id_instr[19..15];
+        s_id_rs2 = s_id_instr[24..20];
+        s_id_rd = s_id_instr[11..7];
+        s_id_immed = (int32)(int12)s_id_instr[31..20];
+
+        s_id_reg1 = rf_xpr.src1[s_id_rs1];
+        s_id_reg2 = rf_xpr.src2[s_id_rs2];
 
         // Set local stall.
         s_id_stall = 0;
@@ -51,21 +66,6 @@ event id : pipeline(pipe.ID)
 };
 event id_output : pipeline(pipe.ID)
 {
-    uint32 id_instr_temp;
-    bool cache_ready, cache_responses;
-
-    if_fetch.transport(CP_PHS_DATA, cache_ready, cache_responses, id_instr_temp);
-    s_id_instr = r_id_clear ? NOP_INSTRUCTION: id_instr_temp;
-
-    //Opcode
-    s_id_opc = s_id_instr[31..25] :: s_id_instr[14..12] :: s_id_instr[6..0];
-    s_id_rs1 = s_id_instr[19..15];
-    s_id_rs2 = s_id_instr[24..20];
-    s_id_rd = s_id_instr[11..7];
-    s_id_immed = (int32)(int12)s_id_instr[31..20];
-
-    s_id_reg1 = rf_xpr.src1[s_id_rs1];
-    s_id_reg2 = rf_xpr.src2[s_id_rs2];
     semantics
     {
         // -----------------------------------------------------------------------------------------
@@ -77,5 +77,10 @@ event id_output : pipeline(pipe.ID)
         r_ex_reg1 = s_id_reg1;
         r_ex_reg2    = s_id_reg2;
         r_ex_instr = s_id_instr;
+        
+        r_ex_aluop = s_id_aluop;
+        r_ex_regwrite = s_id_regwrite;
+        r_ex_alusrc2 = s_id_alusrc2;
+        r_ex_halt = s_id_halt;
     };
 };
