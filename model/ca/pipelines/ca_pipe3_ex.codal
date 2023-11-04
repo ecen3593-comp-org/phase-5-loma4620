@@ -44,10 +44,60 @@ event ex : pipeline(pipe.EX)
             codasip_info(INFO_GENERAL, "Halt Instructions Indicated");
         }
 
+        //Set forwarding control bits
+        if ((r_me_rd == r_ex_src1) && (r_me_rd != 0) && (r_me_regwrite)){
+            s_ex_fwdA = MEM_ALU1;
+        }
+        else if ((r_wb_rd == r_ex_src1)  && (r_wb_rd != 0) && (r_wb_regwrite)){
+            s_ex_fwdA = WB_ALU1;
+        }
+        else{
+            s_ex_fwdA = EX_REG1;
+        }
+
+        if ((r_me_rd == r_ex_src2) && (r_me_rd != 0) && (r_me_regwrite)){
+            s_ex_fwdB = MEM_ALU2;
+        }
+        else if ((r_wb_rd == r_ex_src2)  && (r_wb_rd != 0) && (r_wb_regwrite)){
+            s_ex_fwdB = WB_ALU2;
+        }
+        else{
+            s_ex_fwdB = EX_REG2;
+        }
+
+        //Set fowrwarded values 
+        switch (s_ex_fwdA){
+            case MEM_ALU1:
+                s_ex_fwdval1 = r_me_alu;
+                break;
+            case WB_ALU1:
+                s_ex_fwdval1 = r_wb_alu;
+                break;
+            case EX_REG1:
+                s_ex_fwdval1 = r_ex_reg1;
+                break;
+            default:
+                s_ex_fwdval1 = 0;
+        }
+
+        switch (s_ex_fwdB){
+            case MEM_ALU2:
+                s_ex_fwdval2 = r_me_alu;
+                break;
+            case WB_ALU2:
+                s_ex_fwdval2 = r_wb_alu;
+                break;
+            case EX_REG2:
+                s_ex_fwdval2 = r_ex_reg2;
+                break;
+            default:
+                s_ex_fwdval2 = 0;
+        }
+
         switch (r_ex_alusrc2)
         {
             case ALU2_REG:
-                s_ex_src2 = r_ex_reg2;
+                s_ex_src2 = s_ex_fwdval2;
                 break;
             case ALU2_IMM:
                 s_ex_src2 = r_ex_immed;
@@ -63,7 +113,7 @@ event ex : pipeline(pipe.EX)
                 s_ex_alu = 0;
                 break;
             case ALU_ADD:
-                s_ex_alu = r_ex_reg1 + s_ex_src2;
+                s_ex_alu = s_ex_fwdval1 + s_ex_src2;
                 break;
             default:
                 s_ex_alu = 0;

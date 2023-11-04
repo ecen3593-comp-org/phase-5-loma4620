@@ -48,7 +48,7 @@ signal bit[ADDR_W] s_if_nextpc;
 // -------------------------------------------------------------------------------------------------
 
 // Program Counter
-register bit[ADDR_W] r_id_pc            { pipeline = pipe.ID; };
+register bit[ADDR_W] r_id_pc                    { pipeline = pipe.ID; };
 // Instruction -- Machine Code
 signal bit[INSTR_W] s_id_instr;
 
@@ -76,6 +76,18 @@ signal bit[WORD_W] s_id_immed;
 
 //Read signal
 signal bit[IMM5_W] s_id_rd;
+
+//RFF signals
+signal bit[RFF1_W] s_id_rff1;
+signal bit[RFF2_W] s_id_rff2;
+
+//Forward selection ouptut signals
+signal bit[WORD_W] s_id_rff1_fwd;
+signal bit[WORD_W] s_id_rff2_fwd;
+
+//forwarding regs
+register bit[WORD_W] r_id_src1                  {pipeline = pipe.ID; };
+register bit[WORD_W] r_id_src2                  {pipeline = pipe.ID; };
 // -------------------------------------------------------------------------------------------------
 // Execute stage
 // -------------------------------------------------------------------------------------------------
@@ -86,14 +98,14 @@ register bit[INSTR_W] r_ex_instr                { pipeline = pipe.EX; };
 register bit[WORD_W] r_ex_halt            		{ pipeline = pipe.EX; };
 
 // ALU Operation Control
-register bit[WORD_W] r_ex_aluop        		{ pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_aluop        		    { pipeline = pipe.EX; };
 
 //OP2 Mux inputs
-register bit[WORD_W] r_ex_immed                { pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_immed                 { pipeline = pipe.EX; };
 register bit[WORD_W] r_ex_reg2                  { pipeline = pipe.EX; };
 
 //OP2 Mux control
-register bit[WORD_W] r_ex_alusrc2            { pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_alusrc2               { pipeline = pipe.EX; };
 
 //ALU input 1
 register bit[WORD_W] r_ex_reg1                  { pipeline = pipe.EX; };
@@ -104,11 +116,23 @@ register bit[WORD_W] r_ex_rd                    { pipeline = pipe.EX; };
 //Read signal
 register bit[WORD_W] r_ex_regwrite              { pipeline = pipe.EX; };
 
+//forwarding regs
+register bit[WORD_W] r_ex_src1                  { pipeline = pipe.EX; };
+register bit[WORD_W] r_ex_src2                  { pipeline = pipe.EX; };
+
 //ALU input 2
 signal bit[WORD_W] s_ex_src2;
 
 //ALU output signal
 signal bit[WORD_W] s_ex_alu;
+
+//Forwarding control signal
+signal bit[FWDA_W] s_ex_fwdA;
+signal bit[FWDB_W] s_ex_fwdB;
+
+//Fowarding mux outputs
+signal bit[WORD_W] s_ex_fwdval1;
+signal bit[WORD_W] s_ex_fwdval2;
 
 // -------------------------------------------------------------------------------------------------
 // Memory stage

@@ -38,6 +38,12 @@
 #define REGWRITE_W     bitsizeof(enum regwrite)
 #define SRC2_W         bitsizeof(enum src2)
 #define HALT_W         bitsizeof(enum halt)
+
+#define RFF1_W         bitsizeof(enum rff1_sel)
+#define RFF2_W         bitsizeof(enum rff2_sel)
+
+#define FWDA_W         bitsizeof(enum fwdA_sel)
+#define FWDB_W         bitsizeof(enum fwdB_sel)
 // -------------------------------------------------------------------------------------------------
 // Enumerations
 // -------------------------------------------------------------------------------------------------
@@ -49,6 +55,16 @@
 // -------------------------------------------------------------------------------------------------
 // ID stage
 // -------------------------------------------------------------------------------------------------
+
+enum rff1_sel{
+    REG1_SRC,
+    DATA_RESULT,
+};
+
+enum rff2_sel{
+    REG2_SRC,
+    DATA_RESULT2,
+};
 
 // -------------------------------------------------------------------------------------------------
 // EX stage
@@ -77,6 +93,18 @@ enum halt
 {
     HALT_NOHALT,
     HALT_HALT,
+};
+
+enum fwdA_sel{
+    EX_REG1,
+    MEM_ALU1,
+    WB_ALU1
+};
+
+enum fwdB_sel{
+    EX_REG2,
+    MEM_ALU2,
+    WB_ALU2
 };
 
 
