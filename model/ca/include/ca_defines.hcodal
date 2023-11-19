@@ -44,6 +44,10 @@
 
 #define FWDA_W         bitsizeof(enum fwdA_sel)
 #define FWDB_W         bitsizeof(enum fwdB_sel)
+
+#define ALU_SRC1_W     bitsizeof(enum alu_src1_sel)
+#define BRANCHOP_W     bitsizeof(enum branchop)
+#define RFWT_W         bitsizeof(enum rfwt_sel)
 // -------------------------------------------------------------------------------------------------
 // Enumerations
 // -------------------------------------------------------------------------------------------------
@@ -51,6 +55,11 @@
 // -------------------------------------------------------------------------------------------------
 // IF stage
 // -------------------------------------------------------------------------------------------------
+
+// enum pcsrc_sel{
+//     PC_PLUS_4,
+//     TARG_ADDR,
+// };
 
 // -------------------------------------------------------------------------------------------------
 // ID stage
@@ -66,6 +75,22 @@ enum rff2_sel{
     DATA_RESULT2,
 };
 
+enum immed_sel{
+    IMM_NONE,
+    IMM_ITYPE,
+    IMM_BTYPE,
+    IMM_JTYPE,
+    IMM_UTYPE,
+    IMM_STYPE,
+};
+
+enum branchop{
+    BRANCH_FALSE,
+    BRANCH_TRUE,
+    BRANCH_COND_TRUE,
+    BRANCH_COND_FALSE,
+};
+
 // -------------------------------------------------------------------------------------------------
 // EX stage
 // -------------------------------------------------------------------------------------------------
@@ -75,6 +100,15 @@ enum aluop
 {
     ALU_NOP,
     ALU_ADD,
+    ALU_AND,
+    ALU_SUB,
+    ALU_OR,
+    ALU_XOR,
+    ALU_SLT,
+    ALU_SLTU,
+    ALU_SLL,
+    ALU_SRL,
+    ALU_SRA,
 };
 
 enum regwrite
@@ -104,9 +138,19 @@ enum fwdA_sel{
 enum fwdB_sel{
     EX_REG2,
     MEM_ALU2,
-    WB_ALU2
+    WB_ALU2,
 };
 
+enum alu_src1_sel{
+    ALU_SRC1_REG,
+    ALU_SRC1_ZERO,
+    SLU_SRC1_PC,
+};
+
+enum branch_targ_sel{
+    BRADD_ADDR,
+    BRADD_ALU,
+};
 
 // -------------------------------------------------------------------------------------------------
 // ME stage
@@ -115,6 +159,12 @@ enum fwdB_sel{
 // -------------------------------------------------------------------------------------------------
 // WB stage
 // -------------------------------------------------------------------------------------------------
+
+enum rfwt_sel{
+    RFWT_ALU,
+    RFWT_PC,
+    RFWT_MEM,
+};
 
 // -------------------------------------------------------------------------------------------------
 // Auxiliary definitions

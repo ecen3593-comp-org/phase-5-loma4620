@@ -35,8 +35,12 @@
 // -------------------------------------------------------------------------------------------------
 
 set dec = i_hw_halt
-                ,i_hw_alu
-                ,i_hw_alu_i
+                ,i_hw_rtype_alu
+                ,i_hw_itype_alu
+                ,i_hw_itype_special
+                ,i_hw_btype_branches
+                ,i_hw_utype_ops
+                ,i_hw_alu_i_jlreg
                 ;
 
 // -------------------------------------------------------------------------------------------------
@@ -65,6 +69,21 @@ element i_hw_halt
 
         // HALT Command
         s_id_halt = HALT_HALT;
+
+        //Immediate selection
+        s_id_immsel = IMM_ITYPE;
+
+        //Branch operation
+        s_id_branchop = BRANCH_FALSE;
+
+        //RFWT select
+        s_id_rfwt_sel = RFWT_ALU;
+
+        //Branch target select
+        s_id_branchop_sel = BRADD_ADDR;
+
+        //Alu source 1 select
+        s_id_alusrc1 = ALU_SRC1_REG;
     };
 };
 
@@ -72,7 +91,7 @@ element i_hw_halt
 // Arithmetic instructions
 // -------------------------------------------------------------------------------------------------
 
-element i_hw_alu
+element i_hw_rtype_alu
 {
     use opc_rtype_alu as opc;
 
@@ -81,13 +100,57 @@ element i_hw_alu
 
     semantics
     {
-        // Register file write enable
-        s_id_regwrite = WE_TRUE;
 
         switch (opc)
         {
             case RTYPE_ADD:
                 s_id_aluop = ALU_ADD;
+                
+                break;
+            
+            case RTYPE_AND:
+                s_id_aluop = ALU_AND;
+                
+                break;
+            
+            case RTYPE_OR:
+                s_id_aluop = ALU_OR;
+                
+                break;
+            
+            case RTYPE_SUB:
+                s_id_aluop = ALU_SUB;
+                
+                break;
+            
+            case RTYPE_XOR:
+                s_id_aluop = ALU_XOR;
+                
+                break;
+            
+            case RTYPE_SRL:
+                s_id_aluop = ALU_SRL;
+                
+                break;
+
+            case RTYPE_SRA:
+                s_id_aluop = ALU_SRA;
+                
+                break;
+            
+            case RTYPE_SLT:
+                s_id_aluop = ALU_SLT;
+                
+                break;
+
+            case RTYPE_SLTU:
+                s_id_aluop = ALU_SLTU;
+                
+                break;
+            
+            case RTYPE_SLL:
+                s_id_aluop = ALU_SLL;
+                
                 break;
 
             default:
@@ -95,15 +158,20 @@ element i_hw_alu
                 break;
         }
 
-        // Operand MUXes
+        s_id_regwrite = WE_TRUE;
         s_id_alusrc2 = ALU2_REG;
+        s_id_immsel = IMM_NONE;
+        s_id_branchop = BRANCH_FALSE;
+        s_id_rfwt_sel = RFWT_ALU;
+        s_id_branch_sel = BRADD_ADDR;
+        s_id_alusrc1 = ALU_SRC1_REG;
 
         // HALT Command
         s_id_halt = HALT_NOHALT;
     };
 };
 
-element i_hw_alu_i
+element i_hw_itype_alu
 {
     use opc_itype_alu as opc;
 
@@ -120,11 +188,198 @@ element i_hw_alu_i
             case ITYPE_ADDI:
                 s_id_aluop = ITYPE_ADDI;
                 break;
+            
+            case ITYPE_ANDI:
+                s_id_aluop = ITPYE_ANDI;
+                break;
+            
+            case ITYPE_ORI:
+                s_id_aluop = ITYPE_ORI;
+                break;
+            
+            case ITYPE_SUBI:
+                s_id_aluop = ITYPE_SUBI;
+                break;
+            
+            case ITYPE_XORI:
+                s_id_aluop = ITYPE_XORI;
+                break;
+            
+            case ITYPE_SLTI:
+                s_id_aluop = ITYPE_SLTI;
+                break;
+
+            case ITYPE_SLTUI:
+                s_id_aluop = ITYPE_SLTUI;
+                break;
 
             default:
                 codasip_fatal(ALU_ERROR, "Default case: %d\n", opc);
                 break;
         }
+
+        s_id_branchop = BRANCH_FALSE;
+        s_id_rfwt_sel = RFWT_ALU;
+        s_id_branch_sel = BRADD_ADDR;
+
+        //Immediate control
+        s_id_immsel = IMM_ITYPE;
+
+        // Operand MUXes
+        s_id_alusrc2 = ALU2_IMM;
+        s_id_alusrc1 = ALU_SRC1_REG;
+
+        // HALT Command
+        s_id_halt = HALT_NOHALT;
+    };
+};
+
+element i_hw_itype_special
+{
+    use opc_itype_special as opc;
+
+    assembly { opc };
+    binary { opc };
+
+    semantics
+    {
+        // Register file write enable
+        s_id_regwrite = WE_TRUE;
+
+        switch (opc)
+        {
+            case ITYPE_SRLI:
+                s_id_aluop = ITYPE_SRLI;
+                break;
+
+            case ITYPE_SRAI:
+                s_id_aluop = ITYPE_SRAI;
+                break;
+
+            case ITYPE_SLLI:
+                s_id_aluop = ITYPE_SLLI;
+                break;
+            
+            default:
+                codasip_fatal(ALU_ERROR, "Default case: %d\n", opc);
+                break;
+        }
+
+        s_id_branchop = BRANCH_FALSE;
+        s_id_rfwt_sel = RFWT_ALU;
+        s_id_branch_sel = BRADD_ADDR;
+
+        //Immediate control
+        s_id_immsel = IMM_ITYPE;
+
+        // Operand MUXes
+        s_id_alusrc2 = ALU2_IMM;
+        s_id_alusrc1 = ALU_SRC1_REG;
+
+        // HALT Command
+        s_id_halt = HALT_NOHALT;
+    };
+};
+
+element i_hw_btype_branches
+{
+    use opc_btype_branches as opc;
+
+    assembly { opc };
+    binary { opc };
+
+    semantics
+    {
+
+        // Register file write enable
+        s_id_regwrite = WE_FALSE;
+        
+        switch (opc)
+        {
+            case BTYPE_BEQ:
+                s_id_aluop = ALU_SUB;
+                s_id_branchop = BRANCH_COND_TRUE;
+                break;
+
+            case BTYPE_BNE:
+                s_id_aluop = ALU_SUB;
+                s_id_branchop = BRANCH_COND_FALSE;
+                break;
+
+            case BTYPE_BLT:
+                s_id_aluop = ALU_SLT;
+                s_id_branchop = BRANCH_COND_FALSE;
+                break;
+
+            case BTYPE_BGE:
+                s_id_aluop = ALU_SLT;
+                s_id_branchop = BRANCH_COND_TRUE;
+                break;
+
+            case BTYPE_BLTU:
+                s_id_aluop = ALU_SLTU;
+                s_id_branchop = BRANCH_COND_FALSE;
+                break;
+
+            case BTYPE_BGEU:
+                s_id_aluop = ALU_SLTU;
+                s_id_branchop = BRANCH_COND_TRUE;
+                break;
+
+            default:
+                codasip_fatal(ALU_ERROR, "Default case: %d\n", opc);
+                break;
+        }
+
+        //Immediate control
+        s_id_immsel = IMM_BTYPE;
+
+        // Operand MUXes
+        s_id_alusrc1 = ALU_SRC1_REG;
+        s_id_alusrc2 = ALU2_REG;
+        s_id_rfwt_sel = DONT_CARE;
+        s_id_branch_sel = BRADD_ADDR;
+
+        // HALT Command
+        s_id_halt = HALT_NOHALT;
+    };
+};
+
+element i_hw_utype_ops
+{
+    use opc_utype_ops as opc;
+
+    assembly { opc };
+    binary { opc };
+
+    semantics
+    {
+        // Register file write enable
+        s_id_regwrite = WE_TRUE;
+
+        switch (opc)
+        {
+            case UTYPE_AUIPC:
+                s_id_aluop = ALU_NOP;
+                s_id_alusrc1 = ALU_SRC1_PC;
+                break;
+            
+            case UTYPE_LUI:
+                s_id_aluop = ALU_NOP;
+                s_id_alusrc1 = ALU_SRC1_ZERO;
+                break;
+
+            default:
+                codasip_fatal(ALU_ERROR, "Default case: %d\n", opc);
+                break;
+        }
+
+        s_id_branchop = BRANCH_FALSE;
+        s_id_rfwt_sel = RFWT_ALU;
+        s_id_branch_sel = BRADD_ADDR;
+
+        //Immediate control
+        s_id_immsel = IMM_ITYPE;
 
         // Operand MUXes
         s_id_alusrc2 = ALU2_IMM;
@@ -133,3 +388,64 @@ element i_hw_alu_i
         s_id_halt = HALT_NOHALT;
     };
 };
+
+element i_hw_itype_jlreg
+{
+    use opc_itype_jlreg as opc;
+
+    assembly { opc };
+    binary { opc };
+
+    semantics
+    {
+        // Register file write enable
+        s_id_regwrite = WE_TRUE;
+        
+        s_id_aluop = ALU_ADD;
+        s_id_branchop = BRANCH_TRUE;
+        s_id_rfwt_sel = RFWT_PC;
+        s_id_branch_sel = BRADD_ALU;
+        //Immediate control
+        s_id_immsel = IMM_ITYPE;
+
+        // Operand MUXes
+        s_id_alusrc2 = ALU2_IMM;
+        s_id_alusrc1 = ALU_SRC1_REG;
+
+        // HALT Command
+        s_id_halt = HALT_NOHALT;
+    };
+};
+
+element i_hw_jtype_jlink
+{
+    use opc_jtype_jlink as opc;
+
+    assembly { opc };
+    binary { opc };
+
+    semantics
+    {
+        // Register file write enable
+        s_id_regwrite = WE_TRUE;
+        
+        s_id_aluop = ALU_NOP;
+
+        //Immediate control
+        s_id_immsel = IMM_JTYPE;
+
+        //Branching control
+        s_id_branchop = BRANCH_TRUE;
+        s_id_rfwt_sel = RFWT_PC;
+
+        s_id_branch_sel = BRADD_ADDR;
+
+        // Operand MUXes
+        s_id_alusrc2 = ALU2_REG;
+        s_id_alusrc1 = ALU_SRC1_REG;
+
+        s_id_halt = HALT_NOHALT;
+    };
+};
+
+

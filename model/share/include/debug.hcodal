@@ -47,7 +47,8 @@ enum info_levels
     TRACE_LEVEL     = 23,
     WARNING_LEVEL   = 24,
     DEBUG_LEVEL     = 25,
-    FATAL_ERROR_LEVEL = 128
+    FATAL_ERROR_LEVEL = 128,
+    RFWT_ERROR = 129,
 };
 
 #define DEBUG_WRAPPING 32 // maximal number of characters per line in debug messages

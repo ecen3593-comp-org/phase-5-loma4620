@@ -36,7 +36,33 @@ event me : pipeline(pipe.ME)
 
     semantics
     {
-
+        switch (r_me_branchop){
+            case BRANCH_COND_TRUE:
+                if (r_me_zero == 1){
+                    s_me_pcsrc = 1;
+                }
+                else{
+                    s_me_pcsrc = 0;
+                }
+                break;
+            case BRANCH_COND_FALSE:
+                if (r_me_zero == 0){
+                    s_me_pcsrc = 1;
+                }
+                else{
+                    s_me_pcsrc = 0;
+                }
+                break;
+            case BRANCH_TRUE:
+                s_me_pcsrc = 1;
+                break;
+            case BRANCH_FALSE:
+                s_me_pcsrc = 0;
+                break;
+            default:
+                s_me_pcsrc = 0;
+                codasip_fatal(ALU_ERROR, "Default case %d\n", s_me_pcsrc);
+        }
         me_output();
     };
 };
@@ -50,5 +76,8 @@ event me_output : pipeline(pipe.ME)
         r_wb_regwrite = r_me_regwrite;
         r_wb_instr = r_me_instr;
         r_wb_alu = r_me_alu;
+
+        r_wb_pcsrc = s_me_pcsrc;
+        r_wb_rfwt_sel = r_me_rfwt_sel;
     };
 };

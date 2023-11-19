@@ -72,5 +72,10 @@ event pipeline_control : pipeline(pipe.IF)
             pipe.WB.clear();
             codasip_info(INFO_PIPE, "pipeline WB clear\n");
         }
+
+        if (s_me_pcsrc){
+            pipe.ID.clear();
+            pipe.EX.clear();
+        }
     };
 };

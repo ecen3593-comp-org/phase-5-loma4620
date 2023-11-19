@@ -71,7 +71,7 @@ event ex : pipeline(pipe.EX)
                 s_ex_fwdval1 = r_me_alu;
                 break;
             case WB_ALU1:
-                s_ex_fwdval1 = r_wb_alu;
+                s_ex_fwdval1 = r_wb_result;
                 break;
             case EX_REG1:
                 s_ex_fwdval1 = r_ex_reg1;
@@ -85,7 +85,7 @@ event ex : pipeline(pipe.EX)
                 s_ex_fwdval2 = r_me_alu;
                 break;
             case WB_ALU2:
-                s_ex_fwdval2 = r_wb_alu;
+                s_ex_fwdval2 = r_wb_result;
                 break;
             case EX_REG2:
                 s_ex_fwdval2 = r_ex_reg2;
@@ -94,30 +94,97 @@ event ex : pipeline(pipe.EX)
                 s_ex_fwdval2 = 0;
         }
 
+        //select alu inputs
         switch (r_ex_alusrc2)
         {
             case ALU2_REG:
-                s_ex_src2 = s_ex_fwdval2;
+                s_ex_alu_input2 = s_ex_fwdval2;
                 break;
             case ALU2_IMM:
-                s_ex_src2 = r_ex_immed;
+                s_ex_alu_input2 = r_ex_immed;
                 break;
             default:
-                s_ex_src2 = 0;
+                s_ex_alu_input2 = 0;
                 codasip_fatal(SRC2_ERROR, "Default case: %d\n", r_ex_alusrc2);
         }
 
+        switch (r_ex_alusrc1){
+            case ALU_SRC1_REG:
+                s_ex_alu_input1 = s_ex_fwdval1;
+                break;
+            case ALU_SRC1_ZERO:
+                s_ex_alu_input1 = 0;
+                break;
+            case SLU_SRC1_PC:
+                s_ex_alu_input1 = r_ex_pc;
+                break;
+            default:
+                s_ex_alu_input2 = 0;
+                codasip_fatal(SRC2_ERROR, "Default case: %d\n", r_ex_alusrc1);
+        }
+
+        //Perform alu operation
         switch (r_ex_aluop)
         {
             case ALU_NOP:
                 s_ex_alu = 0;
                 break;
             case ALU_ADD:
-                s_ex_alu = s_ex_fwdval1 + s_ex_src2;
+                s_ex_alu = s_ex_alu_input1 + s_ex_alu_input2;
+                break;
+            case ALU_SUB:
+                s_ex_alu = s_ex_alu_input1 - s_ex_alu_input2;
+                break;
+            case ALU_SLL:
+                s_ex_alu = s_ex_alu_input1 << s_ex_alu_input2;
+                break;
+            case ALU_SLT:
+                if (((int32) s_ex_alu_input1) < ((int32) s_ex_alu_input2)) s_ex_alu = 1;
+                else s_ex_alu = 0;
+                break;
+            case ALU_SLTU:
+                if (s_ex_alu_input1 < s_ex_alu_input2) s_ex_alu = 1;
+                else s_ex_alu = 0;
+                break;
+            case ALU_XOR:
+                s_ex_alu = s_ex_alu_input1 ^ s_ex_alu_input2;
+                break;
+            case ALU_SRL:
+                s_ex_alu = s_ex_alu_input1 >> (uint5) s_ex_alu_input2;
+                break;
+            case ALU_SRA:
+                s_ex_alu = (int32) s_ex_alu_input1 >> (uint5) s_ex_alu_input2;
+                break;
+            case ALU_OR:
+                s_ex_alu = s_ex_alu_input1 | s_ex_alu_input2;
+                break;
+            case ALU_AND:
+                s_ex_alu = s_ex_alu_input1 & s_ex_alu_input2;
                 break;
             default:
                 s_ex_alu = 0;
-                codasip_fatal(ALU_ERROR, "Default case %d\n", r_ex_aluop);
+                codasip_fatal(ALU_ERROR, "Default case %d\n", s_ex_aluop);
+        }
+
+        s_ex_brimm = r_ex_immed + r_ex_pc;
+
+        switch (r_ex_branch_sel){
+            case BRADD_ADDR:
+                s_ex_target_addr = s_ex_brimm;
+                break;
+            case BRADD_ALU:
+                s_ex_target_addr = s_ex_alu;
+                break;
+            default:
+                s_ex_target_addr = 0;
+                codasip_fatal(ALU_ERROR, "Default case %d\n", s_ex_target_addr);
+        }
+
+        if (s_ex_alu == 0){
+            s_ex_zero = 1;
+        }
+        else{
+            s_ex_zero = 0;
         }
 
         // Timing
@@ -134,5 +201,10 @@ event ex_output : pipeline(pipe.EX)
         r_me_regwrite = r_ex_regwrite;
         r_me_instr = r_ex_instr;
         r_me_alu = s_ex_alu;
+
+        r_me_branchop = r_ex_branchop;
+        r_me_target_addr = s_ex_target_addr;
+        r_me_zero = s_ex_zero;
+        r_me_rfwt_sel = r_ex_rfwt_sel;
     };
 };

@@ -36,8 +36,21 @@ event wb : pipeline(pipe.WB)
         // Set local stall.
         s_wb_stall = 0;
 
+        //Writeback result multiplexor
+        switch (r_wb_rfwt_sel){
+            case RFWT_ALU:
+                s_wb_result = r_wb_alu;
+                break;
+            case RFWT_PC:
+                s_wb_result = r_wb_pc + 4;
+                break;
+            default:
+                s_wb_result = 0;
+                codasip_fatal(RFWT_ERROR, "Default case %d\n", s_wb_result);
+        }
+
         if (r_wb_regwrite && r_wb_rd != 0){ // Destination register indexed below, so verify
-            rf_xpr.wrt0[r_wb_rd] = r_wb_alu;
+            rf_xpr.wrt0[r_wb_rd] = r_wb_result;
             codasip_info(INFO_RF_WRITE, "rf_xpr[%d] = 0x%x", r_wb_rd, r_wb_alu);
         }
 
