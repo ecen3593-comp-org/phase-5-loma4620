@@ -51,9 +51,9 @@ event id : pipeline(pipe.ID)
         s_id_rd = s_id_instr[11..7];
         s_id_immedi = (int32)(int12)s_id_instr[31..20];
         s_id_immedb = ((int32)(int12)(s_id_instr[31..31]::s_id_instr[7..7]::s_id_instr[30..25]::s_id_instr[11..8])) << 1;
-        s_id_immedu = (int32)(int12)s_id_instr[31..12];
-        s_id_immeds = ((int32)(int12)(s_id_instr[31..31]::s_id_instr[7..7]::s_id_instr[30..25]::s_id_instr[11..8])) << 1;
-        s_id_immedj = (int32)(int12)s_id_instr[31..12];
+        s_id_immedu = (int32)(int20)s_id_instr[31..12] << 12;
+        s_id_immeds = ((int32)(int12)(s_id_instr[31..25]::s_id_instr[11..7]));
+        s_id_immedj = (int32)(int20)(s_id_instr[31..31]::s_id_instr[19..12]::s_id_instr[20..20]::s_id_instr[30..21]) << 1;
 
         s_id_reg1 = rf_xpr.src1[s_id_rs1];
         s_id_reg2 = rf_xpr.src2[s_id_rs2];
@@ -64,7 +64,7 @@ event id : pipeline(pipe.ID)
         // Decoder activation
         dec(s_id_opc);
 
-        //Select immediate after decoding 
+        //Select immediate after decoding
         switch(s_id_immsel){
             case IMM_NONE:
                 s_id_immed = 0;
@@ -111,7 +111,7 @@ event id : pipeline(pipe.ID)
                 s_id_rff1_fwd = s_id_reg1;
                 break;
             case DATA_RESULT:
-                s_id_rff1_fwd = r_wb_result;
+                s_id_rff1_fwd = s_wb_result;
                 break;
             default:
                 s_id_rff1_fwd = 0;
@@ -122,7 +122,7 @@ event id : pipeline(pipe.ID)
                 s_id_rff2_fwd = s_id_reg2;
                 break;
             case DATA_RESULT2:
-                s_id_rff2_fwd = r_wb_result;
+                s_id_rff2_fwd = s_wb_result;
                 break;
             default:
                 s_id_rff2_fwd = 0;
@@ -157,6 +157,6 @@ event id_output : pipeline(pipe.ID)
         r_ex_branchop = s_id_branchop;
         r_ex_rfwt_sel = s_id_rfwt_sel;
         r_ex_branch_sel = s_id_branch_sel;
-        r_ex_alusrc2 = s_id_alusrc2;
+        r_ex_alusrc1 = s_id_alusrc1;
     };
 };

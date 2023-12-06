@@ -73,13 +73,13 @@ signal bit[WORD_W] s_id_reg1;
 signal bit[WORD_W] s_id_reg2;
 
 //IMMGEN output
-signal bit[WROD_W] s_id_immed;
+signal bit[WORD_W] s_id_immed;
 signal bit[WORD_W] s_id_immedi;
 signal bit[WORD_W] s_id_immedb;
 signal bit[WORD_W] s_id_immedu;
 signal bit[WORD_W] s_id_immeds;
 signal bit[WORD_W] s_id_immedj;
-signal bit[WORD_W] s_id_immsel;
+signal bit[IMMSEL_W] s_id_immsel;
 
 //Read signal
 signal bit[IMM5_W] s_id_rd;
@@ -92,16 +92,12 @@ signal bit[RFF2_W] s_id_rff2;
 signal bit[WORD_W] s_id_rff1_fwd;
 signal bit[WORD_W] s_id_rff2_fwd;
 
-//forwarding regs
-register bit[WORD_W] r_id_src1                  {pipeline = pipe.ID; };
-register bit[WORD_W] r_id_src2                  {pipeline = pipe.ID; };
-
 //ALU src 2 select
 signal bit[ALU_SRC1_W] s_id_alusrc1;
 
 //Branch op ctl signal
 signal bit[BRANCHOP_W] s_id_branchop;
-signal bit[WORD_W] s_id_branch_sel;
+signal bit[BNCH_SEL] s_id_branch_sel;
 
 //Register file write select ctl signal
 signal bit[RFWT_W] s_id_rfwt_sel;
@@ -136,15 +132,15 @@ register bit[IMM5_W] r_ex_rd                    { pipeline = pipe.EX; };
 register bit[REGWRITE_W] r_ex_regwrite              { pipeline = pipe.EX; };
 
 //forwarding regs
-register bit[WORD_W] r_ex_src1                  { pipeline = pipe.EX; };
-register bit[WORD_W] r_ex_src2                  { pipeline = pipe.EX; };
+register bit[RF_XPR_W] r_ex_src1                  { pipeline = pipe.EX; };
+register bit[RF_XPR_W] r_ex_src2                  { pipeline = pipe.EX; };
 
 //Branch op forwarding reg
 register bit[BRANCHOP_W] r_ex_branchop              { pipeline = pipe.EX; };
-register bit[WORD_W] r_ex_branch_sel            { pipeline = pipe.ME; };
+register bit[BNCH_SEL] r_ex_branch_sel            { pipeline = pipe.EX; };
 
 //Register file write sel forwarding reg
-register bit[RFWT_W] r_ex_rfwt_sel                      { pipeline = pipe.ex; };
+register bit[RFWT_W] r_ex_rfwt_sel                      { pipeline = pipe.EX; };
 
 //ALU input 2
 signal bit[WORD_W] s_ex_alu_input2;
@@ -167,7 +163,7 @@ signal bit[WORD_W] s_ex_fwdval2;
 signal bit[BOOLEAN_BIT] s_ex_zero;
 
 //Branch address calculation and ctl signal
-signal bit[WORD_W] s_ex_brimm;
+signal bit[ADDR_W] s_ex_brimm;
 signal bit[ADDR_W] s_ex_target_addr;
 
 // -------------------------------------------------------------------------------------------------
@@ -183,7 +179,7 @@ register bit[WORD_W] r_me_alu                   { pipeline = pipe.ME; };
 register bit[BRANCHOP_W] r_me_branchop              { pipeline = pipe.ME; };
 register bit[BOOLEAN_BIT] r_me_zero                 { pipeline = pipe.ME; };
 register bit[ADDR_W] r_me_target_addr               { pipeline = pipe.ME; };
-register bit[RFWT_W] r_me_rfwt_sel                      { pipeline = pipe.ex; };
+register bit[RFWT_W] r_me_rfwt_sel                      { pipeline = pipe.ME; };
 
 signal bit[BOOLEAN_BIT] s_me_pcsrc;
 
@@ -197,8 +193,8 @@ register bit[INSTR_W] r_wb_instr                { pipeline = pipe.WB; };
 register bit[IMM5_W] r_wb_rd                    { pipeline = pipe.WB; };
 register bit[REGWRITE_W] r_wb_regwrite              { pipeline = pipe.WB; };
 register bit[WORD_W] r_wb_alu                   { pipeline = pipe.WB; };
-register bit[BOOLEAN_BIT] r_wb_pcsrc                 { pipeline = pipe.WB; };
-register bit[RFWT_W] r_wb_rfwt_sel                      { pipeline = pipe.ex; };
+// register bit[BOOLEAN_BIT] r_wb_pcsrc                 { pipeline = pipe.WB; };
+register bit[RFWT_W] r_wb_rfwt_sel                      { pipeline = pipe.WB; };
 
 signal bit[WORD_W] s_wb_result;
 

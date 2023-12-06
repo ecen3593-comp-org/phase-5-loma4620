@@ -48,6 +48,8 @@
 #define ALU_SRC1_W     bitsizeof(enum alu_src1_sel)
 #define BRANCHOP_W     bitsizeof(enum branchop)
 #define RFWT_W         bitsizeof(enum rfwt_sel)
+#define IMMSEL_W       bitsizeof(enum immed_sel)
+#define BNCH_SEL       bitsizeof(enum branch_targ_sel)
 // -------------------------------------------------------------------------------------------------
 // Enumerations
 // -------------------------------------------------------------------------------------------------
@@ -144,7 +146,7 @@ enum fwdB_sel{
 enum alu_src1_sel{
     ALU_SRC1_REG,
     ALU_SRC1_ZERO,
-    SLU_SRC1_PC,
+    ALU_SRC1_PC,
 };
 
 enum branch_targ_sel{

@@ -28,6 +28,7 @@
 // Write-Back Stage
 // -------------------------------------------------------------------------------------------------
 #include "debug.hcodal"
+#include "ca_defines.hcodal"
 
 event wb : pipeline(pipe.WB)
 {
@@ -50,7 +51,7 @@ event wb : pipeline(pipe.WB)
         }
 
         if (r_wb_regwrite && r_wb_rd != 0){ // Destination register indexed below, so verify
-            rf_xpr.wrt0[r_wb_rd] = r_wb_result;
+            rf_xpr.wrt0[r_wb_rd] = s_wb_result;
             codasip_info(INFO_RF_WRITE, "rf_xpr[%d] = 0x%x", r_wb_rd, r_wb_alu);
         }
 

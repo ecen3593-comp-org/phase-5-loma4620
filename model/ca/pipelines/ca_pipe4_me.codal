@@ -77,7 +77,7 @@ event me_output : pipeline(pipe.ME)
         r_wb_instr = r_me_instr;
         r_wb_alu = r_me_alu;
 
-        r_wb_pcsrc = s_me_pcsrc;
+        // r_wb_pcsrc = s_me_pcsrc;
         r_wb_rfwt_sel = r_me_rfwt_sel;
     };
 };

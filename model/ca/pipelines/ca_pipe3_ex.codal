@@ -71,7 +71,7 @@ event ex : pipeline(pipe.EX)
                 s_ex_fwdval1 = r_me_alu;
                 break;
             case WB_ALU1:
-                s_ex_fwdval1 = r_wb_result;
+                s_ex_fwdval1 = s_wb_result;
                 break;
             case EX_REG1:
                 s_ex_fwdval1 = r_ex_reg1;
@@ -85,7 +85,7 @@ event ex : pipeline(pipe.EX)
                 s_ex_fwdval2 = r_me_alu;
                 break;
             case WB_ALU2:
-                s_ex_fwdval2 = r_wb_result;
+                s_ex_fwdval2 = s_wb_result;
                 break;
             case EX_REG2:
                 s_ex_fwdval2 = r_ex_reg2;
@@ -115,12 +115,12 @@ event ex : pipeline(pipe.EX)
             case ALU_SRC1_ZERO:
                 s_ex_alu_input1 = 0;
                 break;
-            case SLU_SRC1_PC:
+            case ALU_SRC1_PC:
                 s_ex_alu_input1 = r_ex_pc;
                 break;
             default:
-                s_ex_alu_input2 = 0;
-                codasip_fatal(SRC2_ERROR, "Default case: %d\n", r_ex_alusrc1);
+                s_ex_alu_input1 = 0;
+                codasip_fatal(SRC2_ERROR, "Default case: %d\n", s_ex_alu_input1);
         }
 
         //Perform alu operation
@@ -163,7 +163,7 @@ event ex : pipeline(pipe.EX)
                 break;
             default:
                 s_ex_alu = 0;
-                codasip_fatal(ALU_ERROR, "Default case %d\n", s_ex_aluop);
+                codasip_fatal(ALU_ERROR, "Default case %d\n", s_ex_alu);
         }
 
         s_ex_brimm = r_ex_immed + r_ex_pc;

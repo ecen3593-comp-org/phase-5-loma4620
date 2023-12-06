@@ -32,6 +32,7 @@ event pipeline_control : pipeline(pipe.IF)
     semantics
     {
         print_pipeline();
+
         if(s_if_stall){
             pipe.IF.stall();
             codasip_info(INFO_PIPE, "pipeline IF stall\n");
@@ -71,11 +72,6 @@ event pipeline_control : pipeline(pipe.IF)
         else if(s_wb_clear){
             pipe.WB.clear();
             codasip_info(INFO_PIPE, "pipeline WB clear\n");
-        }
-
-        if (s_me_pcsrc){
-            pipe.ID.clear();
-            pipe.EX.clear();
         }
     };
 };
