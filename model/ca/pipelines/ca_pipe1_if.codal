@@ -43,7 +43,7 @@ event fe : pipeline(pipe.IF)
 
         // Set all the clear signals.
         s_id_clear = 0;
-        s_ex_clear = s_me_pcsrc;
+        s_ex_clear = (s_id_stall | s_me_pcsrc);
         s_wb_clear = 0;
         s_me_clear = s_me_pcsrc;
 
@@ -51,6 +51,7 @@ event fe : pipeline(pipe.IF)
         s_if_stall = 0;
 
         if (s_me_pcsrc == 1){
+            codasip_info(PC_SRC_ERROR, "PC src = %d\n", s_id_immed);
             s_if_pcin = r_me_target_addr;
         }
         else{
@@ -70,7 +71,13 @@ event if_output : pipeline(pipe.IF)
     semantics
     {
         r_id_pc = s_if_pcin;
-        r_pc = s_if_nextpc;
-        r_id_clear = 0;        
+        if (!s_id_stall){
+            r_pc = s_if_nextpc;
+        }
+        else{
+            r_pc = s_if_pcin;
+        }
+        r_id_clear = 0;       
+        r_id_stall = s_id_stall; 
     };
 };

@@ -33,6 +33,7 @@
 event ex : pipeline(pipe.EX)
 {
     use ex_output;
+    use ex_memory;
 
     semantics
     {
@@ -78,20 +79,31 @@ event ex : pipeline(pipe.EX)
                 break;
             default:
                 s_ex_fwdval1 = 0;
+                break;
         }
 
         switch (s_ex_fwdB){
             case MEM_ALU2:
                 s_ex_fwdval2 = r_me_alu;
+                if (r_ex_memop == MEM_LW){
+                    codasip_info(MEMOP3_ERROR, "mem alu fwd = %d\n", s_ex_fwdval2);
+                }
                 break;
             case WB_ALU2:
                 s_ex_fwdval2 = s_wb_result;
+                if (r_ex_memop == MEM_LW){
+                    codasip_info(MEMOP3_ERROR, "wb alu fwd = %d\n", s_ex_fwdval2);
+                }
                 break;
             case EX_REG2:
                 s_ex_fwdval2 = r_ex_reg2;
+                if (r_ex_memop == MEM_LW){
+                    codasip_info(MEMOP3_ERROR, "no fwd = %d\n", s_ex_fwdval2);
+                }
                 break;
             default:
                 s_ex_fwdval2 = 0;
+                break;
         }
 
         //select alu inputs
@@ -102,15 +114,19 @@ event ex : pipeline(pipe.EX)
                 break;
             case ALU2_IMM:
                 s_ex_alu_input2 = r_ex_immed;
+                // codasip_info(SRC2_ERROR, "Custome print %d\n", s_ex_alu_input2);
                 break;
             default:
                 s_ex_alu_input2 = 0;
                 codasip_fatal(SRC2_ERROR, "Default case: %d\n", r_ex_alusrc2);
+                break;
         }
+        // codasip_info(SRC2_ERROR, "Custome print %d\n", s_ex_alu_input2);
 
         switch (r_ex_alusrc1){
             case ALU_SRC1_REG:
                 s_ex_alu_input1 = s_ex_fwdval1;
+                // codasip_info(SRC1_ERROR, "Custome print %d\n", s_ex_alu_input1);
                 break;
             case ALU_SRC1_ZERO:
                 s_ex_alu_input1 = 0;
@@ -120,8 +136,10 @@ event ex : pipeline(pipe.EX)
                 break;
             default:
                 s_ex_alu_input1 = 0;
-                codasip_fatal(SRC2_ERROR, "Default case: %d\n", s_ex_alu_input1);
+                codasip_fatal(SRC1_ERROR, "Default case: %d\n", s_ex_alu_input1);
+                break;
         }
+        // codasip_info(SRC1_ERROR, "Custome print %d\n", s_ex_alu_input1);
 
         //Perform alu operation
         switch (r_ex_aluop)
@@ -164,7 +182,12 @@ event ex : pipeline(pipe.EX)
             default:
                 s_ex_alu = 0;
                 codasip_fatal(ALU_ERROR, "Default case %d\n", s_ex_alu);
+                break;
         }
+
+        // codasip_info(ALU_ERROR, "Custome print %d\n", s_ex_alu);
+
+        ex_memory();
 
         s_ex_brimm = r_ex_immed + r_ex_pc;
 
@@ -177,7 +200,8 @@ event ex : pipeline(pipe.EX)
                 break;
             default:
                 s_ex_target_addr = 0;
-                codasip_fatal(ALU_ERROR, "Default case %d\n", s_ex_target_addr);
+                codasip_fatal(BNCH_SEL_ERROR, "Default case %d\n", s_ex_target_addr);
+                break;
         }
 
         if (s_ex_alu == 0){
@@ -189,6 +213,81 @@ event ex : pipeline(pipe.EX)
 
         // Timing
         ex_output();
+    };
+};
+
+event ex_memory : pipeline(pipe.EX)
+{
+    semantics
+    {
+        uint1 op_rw; // read/write?
+        uint2 op_type; // non-sequential/burst/idle?
+
+        switch(r_ex_memop){
+            case MEM_LB:
+                op_rw = CP_AHB_READ;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_8;
+                break;
+            case MEM_LBU:
+                op_rw = CP_AHB_READ;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_8;
+                break;
+            case MEM_LH:
+                op_rw = CP_AHB_READ;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_16;
+                break;
+            case MEM_LHU:
+                op_rw = CP_AHB_READ;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_16;
+                break;
+            case MEM_LW:
+                op_rw = CP_AHB_READ;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_32;
+                break;
+            case MEM_SB:
+                op_rw = CP_AHB_WRITE;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_8;
+                break;
+            case MEM_SH:
+                op_rw = CP_AHB_WRITE;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_16;
+                break;
+            case MEM_SW:
+                op_rw = CP_AHB_WRITE;
+                op_type = CP_AHB_NONSEQ;
+                s_ex_memsize = CP_AHB_SIZE_32;
+                break;
+            case MEM_NOP:
+                // codasip_info(MEMOP3_ERROR, "Memop = %d\n", r_ex_memop);
+                op_rw = DONT_CARE;
+                op_type = CP_AHB_IDLE;
+                s_ex_memsize = DONT_CARE;
+                break;
+            default:
+                op_rw = 0;
+                op_type = 0;
+                s_ex_memsize = 0;
+                codasip_fatal(MEMOP_ERROR, "Default case %d\n", s_ex_target_addr);
+                break;
+        }
+
+        // codasip_info(MEMOP3_ERROR, "r_ex_alu1 =  %d\n", s_ex_alu);
+        // codasip_info(MEMOP3_ERROR, "encoded_data1 =  %d\n", s_ex_encoded_data);
+        // codasip_info(MEMOP3_ERROR, "s_ex_fwdval21 = %d\n", s_ex_fwdval2);
+        ldst.transport(CP_PHS_ADDRESS, op_type, op_rw, s_ex_alu, s_ex_memsize);
+        s_ex_encoded_data = ldst.encode_data(s_ex_fwdval2, s_ex_alu, s_ex_memsize);
+        // codasip_info(MEMOP3_ERROR, "r_me_alu2 =  %d\n", s_ex_alu);
+        // codasip_info(MEMOP3_ERROR, "encoded_data2 =  %d\n", s_ex_encoded_data);
+        // codasip_info(MEMOP3_ERROR, "s_ex_fwdval22 = %d\n", s_ex_fwdval2);
+
+        s_me_stall = s_ex_stall;
     };
 };
 
@@ -206,5 +305,9 @@ event ex_output : pipeline(pipe.EX)
         r_me_target_addr = s_ex_target_addr;
         r_me_zero = s_ex_zero;
         r_me_rfwt_sel = r_ex_rfwt_sel;
+
+        r_me_memop = r_ex_memop;
+        r_me_memsize = s_ex_memsize;
+        r_me_encoded_data = s_ex_encoded_data;
     };
 };

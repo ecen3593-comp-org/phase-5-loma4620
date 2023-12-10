@@ -33,6 +33,7 @@
 event me : pipeline(pipe.ME)
 {
     use me_output;
+    use me_memory;  
 
     semantics
     {
@@ -61,9 +62,90 @@ event me : pipeline(pipe.ME)
                 break;
             default:
                 s_me_pcsrc = 0;
-                codasip_fatal(ALU_ERROR, "Default case %d\n", s_me_pcsrc);
+                codasip_fatal(BNCHOP_ERROR, "Default case %d\n", s_me_pcsrc);
+                break;
         }
+        me_memory();
         me_output();
+    };
+};
+
+event me_memory : pipeline(pipe.ME)
+{
+    semantics
+    {
+        uint1 data_ready;
+        uint1 data_response;
+        uint32 load_data_temp;
+
+        if (r_me_memop == MEM_NOP){
+            data_ready = 1;
+            data_response = 1;
+            load_data_temp = 0;
+        }
+        else{
+            // codasip_info(MEMOP3_ERROR, "r_me_alu3 =  %d\n", r_me_alu);
+            // codasip_info(MEMOP3_ERROR, "encoded_data3 =  %d\n", r_me_encoded_data);
+            // codasip_info(MEMOP3_ERROR, "load_temp_data3 =  %d\n", load_data_temp);
+            codasip_info(MEMOP3_ERROR, "memsize = %d\n", r_me_memsize);
+            ldst.transport(CP_PHS_DATA, data_ready, data_response, load_data_temp, r_me_encoded_data);
+            s_me_decoded_data = ldst.decode_data(load_data_temp, r_me_alu, r_me_memsize);
+            // codasip_info(MEMOP3_ERROR, "r_me_alu4 =  %d\n", r_me_alu);
+            // codasip_info(MEMOP3_ERROR, "encoded_data4 =  %d\n", r_me_encoded_data);
+            // codasip_info(MEMOP3_ERROR, "load_temp_data4 =  %d\n", load_data_temp);
+            // codasip_info(MEMOP3_ERROR, "decoded data4 = %d\n", s_me_decoded_data);
+        }
+
+        switch(r_me_memop){
+            case MEM_LB:
+                s_me_mem_result = (int32)(int8) s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_resultlb being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_LBU:
+                s_me_mem_result = (uint32)(uint8) s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_resultlbu being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_LH:
+                s_me_mem_result = (int32)(int16) s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_resultlh being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_LHU:
+                s_me_mem_result = (uint32)(uint16) s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_resultlhu being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_LW:
+                s_me_mem_result = s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_resultlw being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_SB:
+                s_me_mem_result = 0;//(int32)(int8) s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_result being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_SH:
+                s_me_mem_result = 0;//(int32)(int16) s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_result being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_SW:
+                s_me_mem_result = 0;//s_me_decoded_data;
+                // codasip_info(MEMOP3_ERROR, "s_me_mem_result being set in mem %d\n", r_me_memop);
+                break;
+            case MEM_NOP:
+                // codasip_info(MEMOP3_ERROR, "Custome print %d\n", r_me_memop);
+                s_me_mem_result = 0;
+                break;
+            default:
+                s_me_mem_result = 0;
+                codasip_fatal(MEMOP2_ERROR, "Default case %d\n", s_me_mem_result);
+                break;
+        }
+
+        if ((data_ready == 0) && (data_response == 0)){
+            s_me_stall = true;
+            // codasip_info(MEMOP3_ERROR, "data_ready and response were set in mem %d\n", r_me_memop);
+        }
+        else{
+            s_me_stall = false;
+        }
     };
 };
 
@@ -79,5 +161,7 @@ event me_output : pipeline(pipe.ME)
 
         // r_wb_pcsrc = s_me_pcsrc;
         r_wb_rfwt_sel = r_me_rfwt_sel;
+
+        r_wb_mem_result = s_me_mem_result;
     };
 };

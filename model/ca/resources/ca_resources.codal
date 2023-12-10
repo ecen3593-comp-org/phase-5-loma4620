@@ -50,6 +50,10 @@ signal bit[ADDR_W] s_if_pcin;
 
 // Program Counter
 register bit[ADDR_W] r_id_pc                    { pipeline = pipe.ID; };
+register bit[BOOLEAN_BIT] r_id_stall            { default = false; };
+register bit[INSTR_W] r_id_instr_preserved;
+register bit[ADDR_W] r_id_pc_preserved;    
+
 // Instruction -- Machine Code
 signal bit[INSTR_W] s_id_instr;
 
@@ -102,6 +106,11 @@ signal bit[BNCH_SEL] s_id_branch_sel;
 //Register file write select ctl signal
 signal bit[RFWT_W] s_id_rfwt_sel;
 
+//PHase 8
+signal bit[MEM_OP_W] s_id_memop;
+
+signal bit[BOOLEAN_BIT] s_id_loadhaz;
+
 // -------------------------------------------------------------------------------------------------
 // Execute stage
 // -------------------------------------------------------------------------------------------------
@@ -142,6 +151,9 @@ register bit[BNCH_SEL] r_ex_branch_sel            { pipeline = pipe.EX; };
 //Register file write sel forwarding reg
 register bit[RFWT_W] r_ex_rfwt_sel                      { pipeline = pipe.EX; };
 
+//Memory operation pipelining register
+register bit[MEM_OP_W] r_ex_memop                       { pipeline = pipe.EX; };
+
 //ALU input 2
 signal bit[WORD_W] s_ex_alu_input2;
 
@@ -166,22 +178,36 @@ signal bit[BOOLEAN_BIT] s_ex_zero;
 signal bit[ADDR_W] s_ex_brimm;
 signal bit[ADDR_W] s_ex_target_addr;
 
+//Phase 8
+signal bit[TWO_BIT] s_ex_memsize;
+
+signal bit[WORD_W] s_ex_encoded_data;
+
 // -------------------------------------------------------------------------------------------------
 // Memory stage
 // -------------------------------------------------------------------------------------------------
 
 // Pipelined Program Counter + Instruction
-register bit[ADDR_W] r_me_pc           			{ pipeline = pipe.ME; };
-register bit[INSTR_W] r_me_instr                { pipeline = pipe.ME; };
-register bit[IMM5_W] r_me_rd                    { pipeline = pipe.ME; };
+register bit[ADDR_W] r_me_pc           			    { pipeline = pipe.ME; };
+register bit[INSTR_W] r_me_instr                    { pipeline = pipe.ME; };
+register bit[IMM5_W] r_me_rd                        { pipeline = pipe.ME; };
 register bit[REGWRITE_W] r_me_regwrite              { pipeline = pipe.ME; };
-register bit[WORD_W] r_me_alu                   { pipeline = pipe.ME; };
+register bit[WORD_W] r_me_alu                       { pipeline = pipe.ME; };
 register bit[BRANCHOP_W] r_me_branchop              { pipeline = pipe.ME; };
 register bit[BOOLEAN_BIT] r_me_zero                 { pipeline = pipe.ME; };
 register bit[ADDR_W] r_me_target_addr               { pipeline = pipe.ME; };
-register bit[RFWT_W] r_me_rfwt_sel                      { pipeline = pipe.ME; };
+register bit[RFWT_W] r_me_rfwt_sel                  { pipeline = pipe.ME; };
+//Memory operation pipelining register
+register bit[MEM_OP_W] r_me_memop                   {pipeline = pipe.ME; };
+register bit[TWO_BIT] r_me_memsize                    {pipeline = pipe.ME; };
+register bit[WORD_W] r_me_encoded_data              {pipeline = pipe.ME; };
 
 signal bit[BOOLEAN_BIT] s_me_pcsrc;
+
+//Phase 8
+signal bit[WORD_W] s_me_decoded_data;
+
+signal bit[WORD_W] s_me_mem_result;
 
 // -------------------------------------------------------------------------------------------------
 // Writeback stage
@@ -193,10 +219,13 @@ register bit[INSTR_W] r_wb_instr                { pipeline = pipe.WB; };
 register bit[IMM5_W] r_wb_rd                    { pipeline = pipe.WB; };
 register bit[REGWRITE_W] r_wb_regwrite              { pipeline = pipe.WB; };
 register bit[WORD_W] r_wb_alu                   { pipeline = pipe.WB; };
-// register bit[BOOLEAN_BIT] r_wb_pcsrc                 { pipeline = pipe.WB; };
+
 register bit[RFWT_W] r_wb_rfwt_sel                      { pipeline = pipe.WB; };
+register bit[WORD_W] r_wb_mem_result                      { pipeline = pipe.WB; };
 
 signal bit[WORD_W] s_wb_result;
+
+//Phase 8
 
 // -------------------------------------------------------------------------------------------------
 // Pipeline control

@@ -42,7 +42,20 @@ event id : pipeline(pipe.ID)
         bool cache_ready, cache_responses;
 
         if_code.transport(CP_PHS_DATA, cache_ready, cache_responses, id_instr_temp);
-        s_id_instr = r_id_clear ? NOP_INSTRUCTION: id_instr_temp;
+        // s_id_instr = r_id_clear ? NOP_INSTRUCTION: id_instr_temp;
+
+        if (r_id_clear){
+            s_id_instr = NOP_INSTRUCTION;
+            // codasip_info(MEMOP3_ERROR, "r_id_clear set in id %d\n", r_id_clear);
+        }
+        else if (r_id_stall){
+            s_id_instr = r_id_instr_preserved;
+            r_id_pc = r_id_pc_preserved;
+            // codasip_info(MEMOP3_ERROR, "r_id_stall set in id %d\n", r_id_stall);
+        }
+        else{
+            s_id_instr = id_instr_temp;
+        }
 
         //Opcode
         s_id_opc = s_id_instr[31..25] :: s_id_instr[14..12] :: s_id_instr[6..0];
@@ -57,20 +70,43 @@ event id : pipeline(pipe.ID)
 
         s_id_reg1 = rf_xpr.src1[s_id_rs1];
         s_id_reg2 = rf_xpr.src2[s_id_rs2];
+        // codasip_info(IMMED_SEL_ERROR, "rs2 = %d\n", s_id_immsel);
 
         // Set local stall.
-        s_id_stall = 0;
+        // s_id_stall = 0;
 
         // Decoder activation
         dec(s_id_opc);
 
+        // codasip_info(IMMED_SEL_ERROR, "s_id_rs1 = %d\n", s_id_rs1);
+        // codasip_info(IMMED_SEL_ERROR, "s_id_rs2 = %d\n", s_id_rs2);
+        // codasip_info(IMMED_SEL_ERROR, "r_ex_rd = %d\n", r_ex_rd);
+        // codasip_info(IMMED_SEL_ERROR, "r_ex_memop = %d\n", r_ex_memop);
+        if ((s_id_rs1 == r_ex_rd) || (s_id_rs2 == r_ex_rd)){
+            if ((r_ex_memop == MEM_LB) || (r_ex_memop == MEM_LBU) || (r_ex_memop == MEM_LH) || (r_ex_memop == MEM_LHU) || (r_ex_memop == MEM_LW)){
+                s_id_loadhaz = 1;
+                codasip_info(MEMOP3_ERROR, "s_id_loadhax being set in id %d\n", r_me_memop);
+            }
+            else{
+                s_id_loadhaz = 0;
+            }
+        }
+        else{
+            s_id_loadhaz = 0;
+        }
+
+        s_id_stall = s_ex_stall || s_id_loadhaz;
+
         //Select immediate after decoding
+        // codasip_info(IMMED_SEL_ERROR, "Custome print %d\n", s_id_immsel);
         switch(s_id_immsel){
             case IMM_NONE:
                 s_id_immed = 0;
                 break;
             case IMM_ITYPE:
                 s_id_immed = s_id_immedi;
+                // codasip_info(IMMED_SEL_ERROR, "Custome print %d\n", s_id_immed);
+                // codasip_info(IMMED_SEL_ERROR, "Custome print %d\n", s_id_immedi);
                 break;
             case IMM_BTYPE:
                 s_id_immed = s_id_immedb;
@@ -86,7 +122,8 @@ event id : pipeline(pipe.ID)
                 break;
             default:
                 s_id_immed = 0;
-                codasip_fatal(SRC2_ERROR, "Default case: %d\n", s_id_immsel);
+                codasip_fatal(IMMED_SEL_ERROR, "Default case: %d\n", s_id_immsel);
+                break;
         }
 
         //Set rff1_sel signal based on forwarding constraints
@@ -115,6 +152,7 @@ event id : pipeline(pipe.ID)
                 break;
             default:
                 s_id_rff1_fwd = 0;
+                break;
         }
 
         switch(s_id_rff2){
@@ -126,7 +164,23 @@ event id : pipeline(pipe.ID)
                 break;
             default:
                 s_id_rff2_fwd = 0;
+                break;
         }
+
+        // if ((s_id_rs1 == r_ex_rd) || (s_id_rs2 == r_ex_rd)){
+        //     if ((r_ex_memop == MEM_LB) || (r_ex_memop == MEM_LBU) || (r_ex_memop == MEM_LH) || (r_ex_memop == MEM_LHU) || (r_ex_memop == MEM_LW)){
+        //         s_id_loadhaz = 1;
+        //         codasip_info(MEMOP3_ERROR, "s_id_loadhax being set in id %d\n", r_me_memop);
+        //     }
+        //     else{
+        //         s_id_loadhaz = 0;
+        //     }
+        // }
+        // else{
+        //     s_id_loadhaz = 0;
+        // }
+
+        // s_id_stall = s_ex_stall || s_id_loadhaz;
 
         // Update the registers
         id_output();
@@ -141,6 +195,7 @@ event id_output : pipeline(pipe.ID)
         // -----------------------------------------------------------------------------------------
         r_ex_pc = r_id_pc;
         r_ex_immed = s_id_immed;
+        // codasip_info(IMMED_SEL_ERROR, "Custome print %d\n", s_id_immed);
         r_ex_rd = s_id_rd;
         r_ex_reg1 = s_id_rff1_fwd;
         r_ex_reg2 = s_id_rff2_fwd;
@@ -158,5 +213,9 @@ event id_output : pipeline(pipe.ID)
         r_ex_rfwt_sel = s_id_rfwt_sel;
         r_ex_branch_sel = s_id_branch_sel;
         r_ex_alusrc1 = s_id_alusrc1;
+
+        r_ex_memop = s_id_memop;
+        r_id_instr_preserved = s_id_instr;
+        r_id_pc_preserved = r_id_pc;
     };
 };

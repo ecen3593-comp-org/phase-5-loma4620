@@ -45,9 +45,14 @@ event wb : pipeline(pipe.WB)
             case RFWT_PC:
                 s_wb_result = r_wb_pc + 4;
                 break;
+            case RFWT_MEM:
+                // codasip_info(MEMOP3_ERROR, "rfwt_sel set to memory %d\n", r_me_memop);
+                s_wb_result = r_wb_mem_result;
+                break;
             default:
                 s_wb_result = 0;
                 codasip_fatal(RFWT_ERROR, "Default case %d\n", s_wb_result);
+                break;
         }
 
         if (r_wb_regwrite && r_wb_rd != 0){ // Destination register indexed below, so verify

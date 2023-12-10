@@ -50,6 +50,7 @@
 #define RFWT_W         bitsizeof(enum rfwt_sel)
 #define IMMSEL_W       bitsizeof(enum immed_sel)
 #define BNCH_SEL       bitsizeof(enum branch_targ_sel)
+#define MEM_OP_W       bitsizeof(enum mem_ops)
 // -------------------------------------------------------------------------------------------------
 // Enumerations
 // -------------------------------------------------------------------------------------------------
@@ -57,11 +58,6 @@
 // -------------------------------------------------------------------------------------------------
 // IF stage
 // -------------------------------------------------------------------------------------------------
-
-// enum pcsrc_sel{
-//     PC_PLUS_4,
-//     TARG_ADDR,
-// };
 
 // -------------------------------------------------------------------------------------------------
 // ID stage
@@ -111,6 +107,19 @@ enum aluop
     ALU_SLL,
     ALU_SRL,
     ALU_SRA,
+};
+
+enum mem_ops
+{
+    MEM_NOP,
+    MEM_LB,
+    MEM_LBU,
+    MEM_LH,
+    MEM_LHU,
+    MEM_LW,
+    MEM_SB,
+    MEM_SH,
+    MEM_SW,
 };
 
 enum regwrite
