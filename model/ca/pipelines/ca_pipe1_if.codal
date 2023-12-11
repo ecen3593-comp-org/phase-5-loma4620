@@ -39,16 +39,7 @@ event fe : pipeline(pipe.IF)
     {
         // -----------------------------------------------------------------------------------------
         // Pipeline control
-        // -----------------------------------------------------------------------------------------
-
-        // Set all the clear signals.
-        s_id_clear = 0;
-        s_ex_clear = (s_id_stall | s_me_pcsrc);
-        s_wb_clear = 0;
-        s_me_clear = s_me_pcsrc;
-
-        // Set the local stall signal.
-        s_if_stall = 0;
+        // ----------------------------------------------------------------------------------------- 
 
         if (s_me_pcsrc == 1){
             codasip_info(PC_SRC_ERROR, "PC src = %d\n", s_id_immed);
@@ -59,6 +50,14 @@ event fe : pipeline(pipe.IF)
         }
 
         if_code.transport(CP_PHS_ADDRESS, CP_AHB_NONSEQ, CP_AHB_READ, s_if_pcin, CP_AHB_SIZE_32);
+
+        // Set all the clear signals.
+        s_id_clear = 0;
+        s_ex_clear = (s_id_stall | s_me_pcsrc);
+        s_wb_clear = 0;
+        s_me_clear = s_me_pcsrc;
+        s_if_stall = 0;
+
         s_if_nextpc = s_if_pcin + INSTR_SIZE;
 
         // Update the registers

@@ -80,8 +80,9 @@ event me_memory : pipeline(pipe.ME)
 
         if (r_me_memop == MEM_NOP){
             data_ready = 1;
-            data_response = 1;
+            data_response = 0;
             load_data_temp = 0;
+            s_me_decoded_data = 0;
         }
         else{
             // codasip_info(MEMOP3_ERROR, "r_me_alu3 =  %d\n", r_me_alu);
