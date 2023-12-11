@@ -82,14 +82,9 @@ event id : pipeline(pipe.ID)
         // codasip_info(IMMED_SEL_ERROR, "s_id_rs2 = %d\n", s_id_rs2);
         // codasip_info(IMMED_SEL_ERROR, "r_ex_rd = %d\n", r_ex_rd);
         // codasip_info(IMMED_SEL_ERROR, "r_ex_memop = %d\n", r_ex_memop);
-        if ((s_id_rs1 == r_ex_rd) || (s_id_rs2 == r_ex_rd)){
-            if ((r_ex_memop == MEM_LB) || (r_ex_memop == MEM_LBU) || (r_ex_memop == MEM_LH) || (r_ex_memop == MEM_LHU) || (r_ex_memop == MEM_LW)){
-                s_id_loadhaz = 1;
-                codasip_info(MEMOP3_ERROR, "s_id_loadhax being set in id %d\n", r_me_memop);
-            }
-            else{
-                s_id_loadhaz = 0;
-            }
+        if ((r_ex_memop != MEM_NOP) && (r_ex_regwrite == WE_TRUE) && ((s_id_rs1 != r_ex_rd) || (s_id_rs2 != r_ex_rd))){
+            s_id_loadhaz = 1;
+            codasip_info(MEMOP3_ERROR, "s_id_loadhax being set in id %d\n", r_me_memop);
         }
         else{
             s_id_loadhaz = 0;
